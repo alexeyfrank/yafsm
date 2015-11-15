@@ -1,50 +1,47 @@
 import { capitalize, isFunction } from "./Utils";
 
 export function build(params, fsm) {
-  params.afterTransitions.forEach((transition) => {
-    if (isFunction(transition.from)) {
-      transition.from = transition.from(fsm.getStates());
-    }
-    if (isFunction(transition.to)) {
-      transition.to = transition.to(fsm.getStates());
-    }
-  });
+  params.afterTransitions = params.afterTransitions.map(buildTransition);
+  params.beforeTransitions = params.beforeTransitions.map(buildTransition);
 
-  params.beforeTransitions.forEach((transition) => {
-    if (isFunction(transition.from)) {
-      transition.from = transition.from(fsm.getStates());
-    }
-    if (isFunction(transition.to)) {
-      transition.to = transition.to(fsm.getStates());
-    }
+  Object.keys(params.events).forEach((eventName) => {
+    fsm[eventName] = buildEventMethod(eventName);
+    fsm["can" + capitalize(eventName)] = buildCheckEventMethod(eventName);
   });
 
   if (!isFunction(params.getState) || !isFunction(params.setState)) {
-    (function() {
-      var state = "";
-      params.getState = () => state;
-      params.setState = (newState) => state = newState;
-    }());
+    params = buildDefaultStateMethods(params);
   }
 
   fsm.params = params;
 
-  for (const eventName in params.events) {
-    fsm[eventName] = buildEventMethod(eventName);
-    fsm["can" + capitalize(eventName)] = buildCheckEventMethod(eventName);
-  }
-
   return fsm;
+}
+
+
+function buildTransition(transition) {
+  transition.from = transition.from();
+  transition.to = transition.to();
+
+  return transition;
+}
+
+function buildDefaultStateMethods(params) {
+  var state = "";
+  params.getState = () => state;
+  params.setState = (newState) => state = newState;
+
+  return params;
 }
 
 function buildEventMethod(eventName) {
   return function() {
-    this.run(eventName);
+    return this.run(eventName);
   }
 }
 
 function buildCheckEventMethod(eventName) {
   return function() {
-    this.can(eventName);
+    return this.can(eventName);
   }
 }

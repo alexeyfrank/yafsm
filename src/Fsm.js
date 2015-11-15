@@ -3,6 +3,10 @@ import { FsmProxy } from "./FsmProxy";
 import { build } from "./FsmBuilder";
 
 export class Fsm {
+  static build(buildFn) {
+    return new Fsm(buildFn);
+  }
+
   constructor(buildFn) {
     const proxy = new FsmProxy();
     buildFn(proxy);

@@ -1,4 +1,4 @@
-import { isString, isFunction } from "./Utils";
+import { contains, isString, isArray, isFunction } from "./Utils";
 
 export class FsmProxy {
   constructor() {
@@ -34,34 +34,28 @@ export class FsmProxy {
   }
 
   all() {
-    return this.data.states;
+    return () => Object.keys(this.data.states);
   }
 
   without(states) {
     return () => {
       if (isString(states)) { states = [states]; }
 
-      return this.data.states.filter(state => states.indexOf(state) == -1);
+      return Object.keys(this.data.states).filter(state => !contains(states, state));
     };
   }
 
   afterTransition(from, to, callback) {
-    if (isString(from)) {
-      from = [from];
-    }
-    if (isString(to)) {
-      to = [to];
-    }
+    from = convertToFunction(from);
+    to = convertToFunction(to);
+
     this.data.afterTransitions.push({from: from, to: to, callback: callback});
   }
 
   beforeTransition(from, to, callback) {
-    if (isString(from)) {
-      from = [from];
-    }
-    if (isString(to)) {
-      to = [to];
-    }
+    from = convertToFunction(from);
+    to = convertToFunction(to);
+
     this.data.beforeTransitions.push({from: from, to: to, callback: callback});
   }
 
@@ -75,3 +69,9 @@ export class FsmProxy {
     return this.data;
   }
 };
+
+function convertToFunction(arg) {
+  if (isString(arg)) { return () => [arg]; }
+  if (isArray(arg)) { return () => arg; }
+  if (isFunction(arg)) { return arg; }
+}
