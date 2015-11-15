@@ -1,4 +1,4 @@
-import { isString, isFunction } from "./Utils";
+import { isString, isFunction, contains } from "./Utils";
 import { FsmProxy } from "./FsmProxy";
 import { build } from "./FsmBuilder";
 
@@ -24,23 +24,6 @@ export class Fsm {
     this._setContextState(newState);
   }
 
-  setState(newState) {
-    const oldState = this.state;
-    this._setContextState(newState);
-
-    var transitions = this.params.afterTransitions;
-    for (var i = 0, l = transitions.length; i < l; i++) {
-      if (transitions[i].from().indexOf(oldState) != -1 && transitions[i].to().indexOf(newState) != -1) {
-        var callback = transitions[i].callback;
-        if (isString(callback)) {
-          this._context[callback]();
-        } else {
-          callback.call(this._context);
-        }
-      }
-    }
-  }
-
   getState() {
     return this._getContextState();
   }
@@ -63,7 +46,7 @@ export class Fsm {
 
     for (var i = 0, l = transitions.length; i < l; i++) {
       var transition = transitions[i];
-      if (_.contains(transition.from, state)) {
+      if (contains(transition.from, state)) {
         if (transition.if && !transition.if(...args)) { continue; }
 
         this._goToState(transition.to);
@@ -76,9 +59,9 @@ export class Fsm {
 
   _runCallbacks(transitions, oldState, newState) {
     transitions.forEach((transition) => {
-      if (_.contains(transition.from, oldState)
-        && _.contains(transition.to, newState)) {
-          const callback = transitions[i].callback;
+      if (contains(transition.from, oldState)
+        && contains(transition.to, newState)) {
+          const callback = transition.callback;
           callback(oldState, newState);
         }
     });
@@ -88,7 +71,7 @@ export class Fsm {
     const oldState = this._getContextState();
 
     this._runCallbacks(this.params.beforeTransitions, oldState, newState);
-    this.setState(newState);
+    this._setContextState(newState);
     this._runCallbacks(this.params.afterTransitions, oldState, newState);
   }
 

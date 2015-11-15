@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Hello</title>
+    </head>
+    <body>
+        <div id="container"></div>
+
+
+        <script src="../../dist/main.js"></script>
+        <script>
+            var currentState = "";
+
+            var stateMachine = new YaFsm(function(fsm) {
+                fsm.initialState('green');
+                fsm.state('green');
+                fsm.state('red');
+
+                fsm.event('toggle', function() {
+                    fsm.transition('green', 'red');
+                    fsm.transition('red', 'green');
+                });
+
+                fsm.beforeTransition('green', 'red', function() {
+                    console.log("before from green to red", arguments);
+                });
+
+                fsm.afterTransition('red', 'green', function() {
+                    console.log("after from red to green", arguments);
+                });
+
+                fsm.changeState({
+                    get: function() { return currentState; },
+                    set: function(val) { currentState = val; }
+                });
+            });
+        </script>
+    </body>
+</html>
+
