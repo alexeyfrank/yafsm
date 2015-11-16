@@ -1,3 +1,3 @@
 # yafsm
-Yea another finite state machine on JS
+Yet another finite state machine on JS
 
